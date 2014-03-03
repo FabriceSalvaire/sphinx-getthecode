@@ -106,13 +106,8 @@ def visit_GetTheCode_html(self, node):
     self.body.append('<div class="getthecode-header">'
                      '<span class="getthecode-filename">%s</span>'
                      '<a href="%s"><span>%s</span></a>'
-                     '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
-                     '<pre id="clipboard_pre">Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod'
-                     'tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,'
-                     'quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo'
-                     'consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse'
-                     'cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non'
-                     'proident, sunt in culpa qui officia deserunt mollit anim id est laborum.</pre>'
+                     # '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
+                     # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
                      '</div>\n' %
                      (basename, download_path, basename))
 
