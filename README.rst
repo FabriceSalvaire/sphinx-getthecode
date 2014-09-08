@@ -31,6 +31,15 @@ To load the plugin, you have to add it in your ``conf.py`` file.
 Usage
 -----
 
+This plugin adds a new directive ``getthecode`` which is equivalent to the ``literalinclude``
+directive, but adds in front of the code block an header with the file name and an icon
+to download the file.
+
+  .. code-block:: ReST
+
+    .. getthecode:: example.py
+      :language: python
+
 .. .............................................................................
 
 .. _Sphinx: http://sphinx-doc.org
