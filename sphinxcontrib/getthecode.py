@@ -52,7 +52,7 @@ class GetTheCodeDirective(Directive):
             return [document.reporter.warning('File insertion disabled', line=self.lineno)]
         env = document.settings.env
         relative_filename, filename = env.relfn2path(self.arguments[0])
-       
+
         encoding = self.options.get('encoding', env.config.source_encoding)
         codec_info = codecs.lookup(encoding)
         try:
@@ -67,7 +67,7 @@ class GetTheCodeDirective(Directive):
             return [document.reporter.warning('Encoding %r used for reading included file %r seems to '
                                               'be wrong, try giving an :encoding: option' %
                                               (encoding, filename))]
-        
+
         retnode = GetTheCode(text, text, source=filename, filename=None)
         set_source_info(self, retnode)
         if self.options.get('language', ''):
@@ -75,7 +75,7 @@ class GetTheCodeDirective(Directive):
         if 'linenos' in self.options:
             retnode['linenos'] = True
         env.note_dependency(relative_filename)
-        
+
         return [retnode]
 
 ####################################################################################################
@@ -98,10 +98,10 @@ def visit_GetTheCode_html(self, node):
     #   'document': <document: <comment...><comment...><section "open source frontends"...>>,
     #   'children': [<#text: 'from pymodelica import compile_fmu\nfrom pyfmi import load_fmu\n\ni ...'>]
     #  }
-    
+
     self.body.append(self.starttag(node, 'div', CLASS=('getthecode')))
     # self.context.append('</div>\n')
-    
+
     basename = os.path.basename(node['filename'])
     download_path = posixpath.join(self.builder.dlpath, node['filename'])
     # class="reference download internal"
@@ -112,7 +112,7 @@ def visit_GetTheCode_html(self, node):
                      # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
                      '</div>\n' %
                      (basename, download_path, basename))
-    
+
     if node.rawsource != node.astext():
         # most probably a parsed-literal block -- don't highlight
         return BaseTranslator.visit_literal_block(self, node)
@@ -132,7 +132,7 @@ def visit_GetTheCode_html(self, node):
     starttag = self.starttag(node, 'div', suffix='', CLASS='highlight-%s' % lang)
     self.body.append(starttag + highlighted + '</div>\n')
     self.body.append('</div>\n')
-    
+
     # don't call depart_GetTheCode_html else dump source code
     raise nodes.SkipNode
 
@@ -157,7 +157,7 @@ def process_getthedoc(app, doctree):
 
     env = app.builder.env
     docname = env.docname
-    
+
     for node in doctree.traverse(GetTheCode):
         # targetname = node['reftarget']
         targetname = os.path.basename(node['source'])
@@ -180,13 +180,7 @@ def setup(app):
                  html=(visit_GetTheCode_html, depart_GetTheCode_html),
                  # text=(visit_GetTheCode_text, depart_GetTheCode_text),
                  )
-    
-    app.add_directive('getthecode', GetTheCodeDirective)
-    
-    app.connect('doctree-read', process_getthedoc)
 
-####################################################################################################
-#
-# End
-#
-####################################################################################################
+    app.add_directive('getthecode', GetTheCodeDirective)
+
+    app.connect('doctree-read', process_getthedoc)
