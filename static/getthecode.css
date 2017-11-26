@@ -1,0 +1,46 @@
+/* ----------------------------------------------------------------------------------------------- *
+ *
+ * GetTheCode
+ *
+ */
+
+div.getthecode {
+    margin-bottom: 1em;
+}
+
+div.getthecode-header {
+    padding: 5px;
+    border-radius: 4px;
+    background: #2980b9;
+    color: white;
+}
+
+div.getthecode-header a {
+    /* color: black; */
+    color: white;
+}
+
+.rst-content div.getthecode-header ul {
+    margin: 0; /* Reset */
+    list-style-type: none;
+}
+.rst-content div.getthecode-header ul li {
+    margin: 0; /* Reset */
+    margin-left: 1em;
+    display: inline;
+}
+
+div.getthecode-header li.getthecode-filename-link span {
+    display: none;
+}
+
+.rst-content div.getthecode-header li.show-code-button {
+    cursor: pointer;
+    float: right;
+    margin-right: 1em;
+}
+
+div.getthecode pre {
+    margin-top: 0px;
+    padding: 3px;
+}
