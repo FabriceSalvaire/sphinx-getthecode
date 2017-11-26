@@ -1,0 +1,9 @@
+#! /bin/bash
+
+rm -rf build dist
+
+python setup.py bdist_wheel
+
+twine register dist/*whl
+gpg --detach-sign -a dist/*whl
+twine upload dist/*
