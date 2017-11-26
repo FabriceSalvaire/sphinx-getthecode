@@ -30,6 +30,8 @@
 
 This plugin implements an enhanced ``literalinclude`` directive for the `Sphinx`_ Documentation Generator.
 
+For a demo, look at `Pyterate <https://github.com/FabriceSalvaire/Pyterate>`_.x
+
 Authored by `Fabrice Salvaire <http://fabrice-salvaire.fr>`_.
 
 Source code is hosted at https://github.com/FabriceSalvaire/sphinx-getthecode
@@ -107,4 +109,4 @@ will result in:
         </div>
     </div>
 
-You can find in the ``static`` directory an example of **CSS stylesheet** and a **Javascript code show/hide the code**.
+You can find in the ``static`` directory an example of **CSS stylesheet** and a **Javascript code to show/hide the code**.

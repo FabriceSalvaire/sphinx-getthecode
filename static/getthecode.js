@@ -1,5 +1,9 @@
+// Javascript code to show/hide the code and style the header
+//
 // https://github.com/FabriceSalvaire/sphinx-getthecode
 // Licensed under GPLv3
+//
+// Require JQuery
 // Require http://fontawesome.io
 $(document).ready(function() {
     // Add a button on the top-right corner of getthecode div to show the code
