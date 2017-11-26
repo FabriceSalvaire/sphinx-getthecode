@@ -26,9 +26,9 @@ class GetTheCode(nodes.literal_block):
 
 class GetTheCodeDirective(Directive):
 
-    """
-    This code is a copy-paste from :file:`sphinx/directives/code.py` :class:`LiteralInclude`. See
+    """This code is a copy-paste from :file:`sphinx/directives/code.py` :class:`LiteralInclude`. See
     also :file:`sphinx/roles.py` :class:`XRefRole`.
+
     """
 
     ##############################################
@@ -41,6 +41,7 @@ class GetTheCodeDirective(Directive):
         'linenos': directives.flag,
         'language': directives.unchanged_required,
         'encoding': directives.encoding,
+        'hidden': directives.flag,
         }
 
     ##############################################
@@ -74,6 +75,8 @@ class GetTheCodeDirective(Directive):
             retnode['language'] = self.options['language']
         if 'linenos' in self.options:
             retnode['linenos'] = True
+        if 'hidden' in self.options:
+            retnode['hidden'] = True
         env.note_dependency(relative_filename)
 
         return [retnode]
@@ -105,13 +108,16 @@ def visit_GetTheCode_html(self, node):
     basename = os.path.basename(node['filename'])
     download_path = posixpath.join(self.builder.dlpath, node['filename'])
     # class="reference download internal"
-    self.body.append('<div class="getthecode-header">'
-                     '<span class="getthecode-filename">%s</span>'
-                     '<a href="%s"><span>%s</span></a>'
-                     # '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
-                     # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
-                     '</div>\n' %
-                     (basename, download_path, basename))
+    self.body.append(
+        '<div class="getthecode-header">\n'
+        '  <ul>\n'
+        '  <li class="getthecode-filename">%s</li>\n'
+        '  <li class="getthecode-filename-link"><a href="%s"><span >%s</span></a></li>\n'
+        # '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
+        # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
+        '  </ul>\n'
+        '</div>\n' %
+        (basename, download_path, basename))
 
     if node.rawsource != node.astext():
         # most probably a parsed-literal block -- don't highlight
@@ -129,7 +135,10 @@ def visit_GetTheCode_html(self, node):
         self.builder.warn(msg, (self.builder.current_docname, node.line))
     highlighted = self.highlighter.highlight_block(node.rawsource, lang, warn=warner,
                                                    linenos=linenos, **highlight_args)
-    starttag = self.starttag(node, 'div', suffix='', CLASS='highlight-%s' % lang)
+    _class = 'highlight-%s' % lang
+    if node.get('hidden', False):
+        _class += ' highlight-hidden'
+    starttag = self.starttag(node, 'div', suffix='', CLASS=_class)
     self.body.append(starttag + highlighted + '</div>\n')
     self.body.append('</div>\n')
 
@@ -176,10 +185,11 @@ def process_getthedoc(app, doctree):
 
 def setup(app):
 
-    app.add_node(GetTheCode,
-                 html=(visit_GetTheCode_html, depart_GetTheCode_html),
-                 # text=(visit_GetTheCode_text, depart_GetTheCode_text),
-                 )
+    app.add_node(
+        GetTheCode,
+        html=(visit_GetTheCode_html, depart_GetTheCode_html),
+        # text=(visit_GetTheCode_text, depart_GetTheCode_text),
+    )
 
     app.add_directive('getthecode', GetTheCodeDirective)
 
