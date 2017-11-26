@@ -30,7 +30,7 @@
 
 This plugin implements an enhanced ``literalinclude`` directive for the `Sphinx`_ Documentation Generator.
 
-For a demo, look at `Pyterate <https://github.com/FabriceSalvaire/Pyterate>`_.x
+For a demo, look at `Pyterate <https://github.com/FabriceSalvaire/Pyterate>`_.
 
 Authored by `Fabrice Salvaire <http://fabrice-salvaire.fr>`_.
 
