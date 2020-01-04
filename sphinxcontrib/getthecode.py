@@ -185,6 +185,9 @@ def process_getthedoc(app, doctree):
 
 def setup(app):
 
+    # https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_js_file
+    app.add_js_file('getthecode.js') # , async='async'
+
     app.add_node(
         GetTheCode,
         html=(visit_GetTheCode_html, depart_GetTheCode_html),
