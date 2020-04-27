@@ -1,7 +1,4 @@
-# -*- coding: utf-8 -*-
-
-"""This plugin provides an enhanced ``literalinclude`` directive for Sphinx Documentation
-Generator.
+"""This plugin provides an enhanced ``literalinclude`` directive for Sphinx Documentation Generator.
 
 """
 
@@ -122,19 +119,22 @@ def visit_GetTheCode_html(self, node):
     if node.rawsource != node.astext():
         # most probably a parsed-literal block -- don't highlight
         return BaseTranslator.visit_literal_block(self, node)
-    lang = self.highlightlang
+
+    lang = node.get('language', 'default')
+    linenos = node.get('linenos', False)
     highlight_args = node.get('highlight_args', {})
-    if node.has_key('language'):
-        # code-block directives
-        lang = node['language']
-        highlight_args['force'] = True
-    linenos = node.rawsource.count('\n') >= self.highlightlinenothreshold - 1
-    if node.has_key('linenos'):
-        linenos = node['linenos']
-    def warner(msg):
-        self.builder.warn(msg, (self.builder.current_docname, node.line))
-    highlighted = self.highlighter.highlight_block(node.rawsource, lang, warn=warner,
-                                                   linenos=linenos, **highlight_args)
+    highlight_args['force'] = node.get('force', False)
+    if lang is self.builder.config.highlight_language:
+        # only pass highlighter options for original language
+        opts = self.builder.config.highlight_options
+    else:
+        opts = {}
+
+    highlighted = self.highlighter.highlight_block(
+        node.rawsource, lang, opts=opts, linenos=linenos,
+        location=(self.builder.current_docname, node.line), **highlight_args
+    )
+
     _class = 'highlight-%s' % lang
     if node.get('hidden', False):
         _class += ' highlight-hidden'
