@@ -1,0 +1,67 @@
+# https://jakevdp.github.io/blog/2016/08/25/conda-myths-and-misconceptions
+
+# https://docs.anaconda.com/anaconda-cloud/user-guide/tasks/work-with-packages/#working-with-packages
+# https://docs.conda.io/projects/conda-build/en/latest/resources/define-metadata.html
+# https://github.com/AnacondaRecipes/conda-feedstock
+
+{% set name = "sphinxcontrib-getthecode" %}
+{% set version = "1.1" %}
+
+package:
+  name: {{ name|lower }}
+  version: {{ version }}
+
+source:
+  # path: ../..
+  #
+  # url: "https://pypi.io/packages/source/{{ name[0] }}/{{ name }}/{{ name }}-{{ version }}.tar.gz"
+  # sha256:
+  #
+  git_url: https://github.com/FabriceSalvaire/sphinxcontrib-getthecode
+  git_rev: "v{{ version }}"
+  git_depth: 1 # (Defaults to -1/not shallow)
+
+build:
+  noarch: python
+  number: 0
+  # script: python -m pip install --no-deps --ignore-installed .
+  # script: "{{ PYTHON }} -m pip install . -vv"
+  # entry_points:
+  # has_prefix_files:
+  # always_include_files:
+
+requirements:
+  host:
+    - pip
+    - python
+    - invoke >=1.3
+  run:
+    - python
+    - Sphinx >=3
+# build:
+#   - wheel
+
+# test:
+#   imports:
+
+# outputs:
+#   - type: wheel
+
+about:
+  home: https://github.com/FabriceSalvaire/sphinx-getthecode
+  license: "GNU General Public License v3.0"
+  license_family: GPL
+  license_file: LICENSE.txt
+  # https://www.gnu.org/licenses/gpl-3.0.en.html
+  summary: "Sphinx getthecode extension"
+  # description: >
+  #   ...
+  dev_url: https://github.com/FabriceSalvaire/sphinx-getthecode
+  doc_url: https://github.com/FabriceSalvaire/sphinx-getthecode
+  # doc_source_url:
+
+extra:
+   maintainers:
+     - FabriceSalvaire
+   recipe-maintainers:
+     - FabriceSalvaire
