@@ -1,13 +1,13 @@
 *~
 *.pyc
-#
+
 .tox/
 build
 dist
 sphinxcontrib_getthecode.egg-info/
-#
+
 README.html
-bzr/
 example.html
 static/jquery.min.js
 test-readme
+__TRASH__
