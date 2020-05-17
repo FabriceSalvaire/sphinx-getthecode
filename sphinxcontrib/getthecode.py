@@ -125,7 +125,7 @@ def process_getthedoc(app, doctree):
 
         # c3e20896d45729b3dd37b566def9e52a/full-test.py
         unique_name = env.dlfiles.add_file(document_name, source_path)
-        node['filename'] = unique_name
+        node['filename'] = unique_name # Fixme: filename -> ... ?
 
         notebook_path = node.get('notebook_path', None)
         if notebook_path is not None:
@@ -134,7 +134,7 @@ def process_getthedoc(app, doctree):
                 continue
 
             unique_name = env.dlfiles.add_file(document_name, str(notebook_path))
-            node['notebook_download_path'] = unique_name
+            node['notebook_download_path'] = unique_name # Fixme: -> ... ?
 
 ####################################################################################################
 
@@ -159,6 +159,7 @@ def visit_GetTheCode_html(self, node):
     #   'children': [<#text: 'from pymodelica import compile_fmu\nfrom pyfmi import load_fmu\n\ni ...'>]
     #  }
 
+    # Open the top div
     self.body.append(self.starttag(node, 'div', CLASS=('getthecode')))
     # self.context.append('</div>\n')
 
@@ -168,6 +169,7 @@ def visit_GetTheCode_html(self, node):
     # ../../_downloads/c3e20896d45729b3dd37b566def9e52a/full-test.py
     url = download_path.joinpath(relative_path)
     filename = relative_path.name
+
     # class="reference download internal"
     template = (
         '<div class="getthecode-header">\n'
@@ -218,6 +220,8 @@ def visit_GetTheCode_html(self, node):
         _class += ' highlight-hidden'
     starttag = self.starttag(node, 'div', suffix='', CLASS=_class)
     self.body.append(starttag + highlighted + '</div>\n')
+
+    # Close the top div
     self.body.append('</div>\n')
 
     # don't call depart_GetTheCode_html else dump source code
