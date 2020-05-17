@@ -4,9 +4,9 @@
 
 ####################################################################################################
 
+from pathlib import Path
 import codecs
 import os
-import posixpath
 
 from docutils import nodes
 from docutils.parsers.rst import Directive, directives
@@ -35,48 +35,62 @@ class GetTheCodeDirective(Directive):
     optional_arguments = 0
     final_argument_whitespace = False
     option_spec = {
-        'linenos': directives.flag,
-        'language': directives.unchanged_required,
         'encoding': directives.encoding,
         'hidden': directives.flag,
-        }
+        'language': directives.unchanged_required,
+        'linenos': directives.flag,
+        'notebook': directives.flag,
+    }
 
     ##############################################
 
     def run(self):
 
         document = self.state.document
+
         if not document.settings.file_insertion_enabled:
             return [document.reporter.warning('File insertion disabled', line=self.lineno)]
+
         env = document.settings.env
-        relative_filename, filename = env.relfn2path(self.arguments[0])
+
+        # arguments = [relative_source_path, ]
+        relative_source_path, source_path = env.relfn2path(self.arguments[0])
 
         encoding = self.options.get('encoding', env.config.source_encoding)
         codec_info = codecs.lookup(encoding)
         try:
-            f = codecs.StreamReaderWriter(open(filename, 'rb'),
-                                          codec_info[2], codec_info[3], 'strict')
-            text = f.read() # file content
-            f.close()
+            fh = codecs.StreamReaderWriter(open(source_path, 'rb'), codec_info[2], codec_info[3], 'strict')
+            text = fh.read()
+            fh.close()
         except (IOError, OSError):
-            return [document.reporter.warning('Include file %r not found or reading it failed' % filename,
-                                              line=self.lineno)]
+            return [
+                document.reporter.warning(
+                    'Include file {} not found or reading it failed'.format(source_path),
+                    line=self.lineno,
+                )
+            ]
         except UnicodeError:
-            return [document.reporter.warning('Encoding %r used for reading included file %r seems to '
-                                              'be wrong, try giving an :encoding: option' %
-                                              (encoding, filename))]
+            template = 'Encoding {} used for reading included file {} seems to be wrong, try giving an :encoding: option'
+            return [document.reporter.warning(template.format(encoding, source_path))]
 
-        retnode = GetTheCode(text, text, source=filename, filename=None)
-        set_source_info(self, retnode)
+        env.note_dependency(relative_source_path)
+
+        node = GetTheCode(text, text, source=source_path, filename=None)
+        set_source_info(self, node)
         if self.options.get('language', ''):
-            retnode['language'] = self.options['language']
+            node['language'] = self.options['language']
         if 'linenos' in self.options:
-            retnode['linenos'] = True
+            node['linenos'] = True
         if 'hidden' in self.options:
-            retnode['hidden'] = True
-        env.note_dependency(relative_filename)
+            node['hidden'] = True
+        if 'notebook' in self.options:
+            # node['notebook'] = True
+            source_path = Path(source_path)
+            notebook_name = source_path.stem + '.ipynb'
+            notebook_path = source_path.parent.joinpath(notebook_name)
+            node['notebook_path'] = notebook_path
 
-        return [retnode]
+        return [node]
 
 ####################################################################################################
 
@@ -85,6 +99,8 @@ def visit_GetTheCode_html(self, node):
     """
     This code is a copy-paste from :file:`sphinx/writers/html.py`.
     """
+
+    # print('visit_GetTheCode_html')
 
     # {
     #   'rawsource': u"...",
@@ -102,19 +118,37 @@ def visit_GetTheCode_html(self, node):
     self.body.append(self.starttag(node, 'div', CLASS=('getthecode')))
     # self.context.append('</div>\n')
 
-    basename = os.path.basename(node['filename'])
-    download_path = posixpath.join(self.builder.dlpath, node['filename'])
+    # c3e20896d45729b3dd37b566def9e52a/full-test.py
+    source_path = Path(node['filename'])
+    download_path = Path(self.builder.dlpath)
+    # ../../_downloads/c3e20896d45729b3dd37b566def9e52a/full-test.py
+    url = download_path.joinpath(source_path)
+    filename = source_path.name
     # class="reference download internal"
-    self.body.append(
+    template = (
         '<div class="getthecode-header">\n'
         '  <ul>\n'
-        '  <li class="getthecode-filename">%s</li>\n'
-        '  <li class="getthecode-filename-link"><a href="%s"><span >%s</span></a></li>\n'
-        # '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
-        # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
+        '  <li class="getthecode-filename">{filename}</li>\n'
+        '  <li class="getthecode-filename-link"><a href="{url}"><span>{filename}</span></a></li>\n'
+    )
+    notebook_path = node.get('notebook_path', None)
+    if notebook_path is not None:
+        notebook_filename = notebook_path.name
+        notebook_url = download_path.joinpath(notebook_path)
+        template += '  <li class="getthecode-notebook-link"><a href="{notebook_url}"><span>{notebook_filename}</span></a></li>\n'
+    else:
+        notebook_filename = None
+        notebook_url = None
+    # '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
+    # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
+    template += (
         '  </ul>\n'
-        '</div>\n' %
-        (basename, download_path, basename))
+        '</div>\n'
+    )
+    self.body.append(template.format(
+        filename=filename, url=url,
+        notebook_filename=notebook_filename, notebook_url=notebook_url
+    ))
 
     if node.rawsource != node.astext():
         # most probably a parsed-literal block -- don't highlight
@@ -135,7 +169,7 @@ def visit_GetTheCode_html(self, node):
         location=(self.builder.current_docname, node.line), **highlight_args
     )
 
-    _class = 'highlight-%s' % lang
+    _class = 'highlight-{}'.format(lang)
     if node.get('hidden', False):
         _class += ' highlight-hidden'
     starttag = self.starttag(node, 'div', suffix='', CLASS=_class)
@@ -164,22 +198,36 @@ def process_getthedoc(app, doctree):
     :meth:`BuildEnvironment.process_downloads` method.
     """
 
+    # Called before visit_GetTheCode_html
+    # print('process_getthedoc')
+
     env = app.builder.env
-    docname = env.docname
+    document_name = env.docname # examples/document-generator/full-test .rst
 
     for node in doctree.traverse(GetTheCode):
         # targetname = node['reftarget']
-        targetname = os.path.basename(node['source'])
-        rel_filename, filename = env.relfn2path(targetname, docname)
-        # print 'target:', targetname
-        # print rel_filename
-        # print filename
-        env.dependencies.setdefault(docname, set()).add(rel_filename)
-        if not os.access(filename, os.R_OK):
-            env.warn_node('download file not readable: %s' % filename, node)
+
+        # /home/.../doc/sphinx/source/examples/document-generator/full-test.py
+        source_path = Path(node['source'])
+        relative_source_path, source_path = env.relfn2path(source_path.name, document_name)
+        env.dependencies.setdefault(document_name, set()).add(relative_source_path)
+
+        if not os.access(source_path, os.R_OK):
+            env.warn_node('download file not readable: {}'.format(source_path), node)
             continue
-        uniquename = env.dlfiles.add_file(docname, filename)
-        node['filename'] = uniquename
+
+        # c3e20896d45729b3dd37b566def9e52a/full-test.py
+        unique_name = env.dlfiles.add_file(document_name, source_path)
+        node['filename'] = unique_name
+
+        notebook_path = node.get('notebook_path', None)
+        if notebook_path is not None:
+            if not os.access(notebook_path, os.R_OK):
+                env.warn_node('download file not readable: {}'.format(notebook_path), node)
+                continue
+
+            unique_name = env.dlfiles.add_file(document_name, str(notebook_path))
+            node['notebook_download_path'] = unique_name
 
 ####################################################################################################
 
