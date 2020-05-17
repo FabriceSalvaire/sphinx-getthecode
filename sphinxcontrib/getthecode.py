@@ -1,5 +1,7 @@
 """This plugin provides an enhanced ``literalinclude`` directive for Sphinx Documentation Generator.
 
+* https://www.sphinx-doc.org/en/master/extdev/index.html
+
 """
 
 ####################################################################################################
@@ -161,11 +163,11 @@ def visit_GetTheCode_html(self, node):
     # self.context.append('</div>\n')
 
     # c3e20896d45729b3dd37b566def9e52a/full-test.py
-    source_path = Path(node['filename'])
+    relative_path = Path(node['filename'])
     download_path = Path(self.builder.dlpath)
     # ../../_downloads/c3e20896d45729b3dd37b566def9e52a/full-test.py
-    url = download_path.joinpath(source_path)
-    filename = source_path.name
+    url = download_path.joinpath(relative_path)
+    filename = relative_path.name
     # class="reference download internal"
     template = (
         '<div class="getthecode-header">\n'
