@@ -94,6 +94,48 @@ class GetTheCodeDirective(Directive):
 
 ####################################################################################################
 
+def process_getthedoc(app, doctree):
+
+    """ This function is a *doctree-read* callback. It copies the download-able files to the
+    directory :directory:`_downloads`.
+
+    This code is a copy-paste with few modifications of the
+    :meth:`BuildEnvironment.process_downloads` method.
+    """
+
+    # Called before visit_GetTheCode_html
+    # print('process_getthedoc')
+
+    env = app.builder.env
+    document_name = env.docname # examples/document-generator/full-test .rst
+
+    for node in doctree.traverse(GetTheCode):
+        # targetname = node['reftarget']
+
+        # /home/.../doc/sphinx/source/examples/document-generator/full-test.py
+        source_path = Path(node['source'])
+        relative_source_path, source_path = env.relfn2path(source_path.name, document_name)
+        env.dependencies.setdefault(document_name, set()).add(relative_source_path)
+
+        if not os.access(source_path, os.R_OK):
+            env.warn_node('download file not readable: {}'.format(source_path), node)
+            continue
+
+        # c3e20896d45729b3dd37b566def9e52a/full-test.py
+        unique_name = env.dlfiles.add_file(document_name, source_path)
+        node['filename'] = unique_name
+
+        notebook_path = node.get('notebook_path', None)
+        if notebook_path is not None:
+            if not os.access(notebook_path, os.R_OK):
+                env.warn_node('download file not readable: {}'.format(notebook_path), node)
+                continue
+
+            unique_name = env.dlfiles.add_file(document_name, str(notebook_path))
+            node['notebook_download_path'] = unique_name
+
+####################################################################################################
+
 def visit_GetTheCode_html(self, node):
 
     """
@@ -186,48 +228,6 @@ def depart_GetTheCode_html(self, node):
     pass
     # BaseTranslator.depart_literal_block(self, node)
     #   self.body.append('\n</pre>\n')
-
-####################################################################################################
-
-def process_getthedoc(app, doctree):
-
-    """ This function is a *doctree-read* callback. It copies the download-able files to the
-    directory :directory:`_downloads`.
-
-    This code is a copy-paste with few modifications of the
-    :meth:`BuildEnvironment.process_downloads` method.
-    """
-
-    # Called before visit_GetTheCode_html
-    # print('process_getthedoc')
-
-    env = app.builder.env
-    document_name = env.docname # examples/document-generator/full-test .rst
-
-    for node in doctree.traverse(GetTheCode):
-        # targetname = node['reftarget']
-
-        # /home/.../doc/sphinx/source/examples/document-generator/full-test.py
-        source_path = Path(node['source'])
-        relative_source_path, source_path = env.relfn2path(source_path.name, document_name)
-        env.dependencies.setdefault(document_name, set()).add(relative_source_path)
-
-        if not os.access(source_path, os.R_OK):
-            env.warn_node('download file not readable: {}'.format(source_path), node)
-            continue
-
-        # c3e20896d45729b3dd37b566def9e52a/full-test.py
-        unique_name = env.dlfiles.add_file(document_name, source_path)
-        node['filename'] = unique_name
-
-        notebook_path = node.get('notebook_path', None)
-        if notebook_path is not None:
-            if not os.access(notebook_path, os.R_OK):
-                env.warn_node('download file not readable: {}'.format(notebook_path), node)
-                continue
-
-            unique_name = env.dlfiles.add_file(document_name, str(notebook_path))
-            node['notebook_download_path'] = unique_name
 
 ####################################################################################################
 
