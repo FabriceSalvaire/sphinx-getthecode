@@ -16,6 +16,35 @@ from docutils.writers.html4css1 import HTMLTranslator as BaseTranslator
 
 from sphinx.util.nodes import set_source_info
 
+import jinja2
+
+####################################################################################################
+
+# class="reference download internal"
+
+# '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
+# '<pre id="clipboard_pre">' + node.rawsource + </pre>'
+
+HEADER_TEMPLATE = '''
+<div class="getthecode-header">
+  <ul>
+    <li class="getthecode-filename">{{ filename }}</li>
+    <li class="getthecode-filename-link">
+      <a href="{{ url }}" download={{ filename }} type="text/x-python" target="_blank" rel="noreferrer noopener"><span>
+        {{ filename }}
+      </span></a>
+    </li>
+{% if notebook_url %}
+    <li class="getthecode-notebook-link">
+      <a href="{{ notebook_url }}" download={{ notebook_filename }} type="application/x-ipynb+json" target="_blank" rel="noreferrer noopener"><span>
+        {{ notebook_filename }}
+      </span></a>
+    </li>
+{% endif %}
+  </ul>
+</div>
+'''
+
 ####################################################################################################
 
 class GetTheCode(nodes.literal_block):
@@ -170,28 +199,18 @@ def visit_GetTheCode_html(self, node):
     url = download_path.joinpath(relative_path)
     filename = relative_path.name
 
-    # class="reference download internal"
-    template = (
-        '<div class="getthecode-header">\n'
-        '  <ul>\n'
-        '  <li class="getthecode-filename">{filename}</li>\n'
-        '  <li class="getthecode-filename-link"><a href="{url}"><span>{filename}</span></a></li>\n'
-    )
-    notebook_path = node.get('notebook_path', None)
+    notebook_path = node.get('notebook_download_path', None)
     if notebook_path is not None:
+        notebook_path = Path(notebook_path)
         notebook_filename = notebook_path.name
         notebook_url = download_path.joinpath(notebook_path)
-        template += '  <li class="getthecode-notebook-link"><a href="{notebook_url}"><span>{notebook_filename}</span></a></li>\n'
     else:
         notebook_filename = None
         notebook_url = None
-    # '<button id="copy-button" data-clipboard-target="clipboard_pre">Copy to Clipboard</button>'
-    # '<pre id="clipboard_pre">' + node.rawsource + </pre>'
-    template += (
-        '  </ul>\n'
-        '</div>\n'
-    )
-    self.body.append(template.format(
+
+    template_str = self.builder.config.getthecode_header_template
+    template = jinja2.Template(template_str)
+    self.body.append(template.render(
         filename=filename, url=url,
         notebook_filename=notebook_filename, notebook_url=notebook_url
     ))
@@ -241,6 +260,8 @@ def setup(app):
 
     # https://www.sphinx-doc.org/en/master/extdev/appapi.html#sphinx.application.Sphinx.add_js_file
     app.add_js_file('getthecode.js') # , async='async'
+
+    app.add_config_value('getthecode_header_template', HEADER_TEMPLATE, False)
 
     app.add_node(
         GetTheCode,
