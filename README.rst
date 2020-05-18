@@ -81,6 +81,7 @@ a link to download the file.
     .. getthecode:: example.py
         :language: python3
         :hidden: ### optional, add a class highlight-hidden
+	:notebook: ### optional, if a example.ipynb is available
 
 will result in:
 
@@ -88,25 +89,57 @@ will result in:
 
     <div class="getthecode">
         <div class="getthecode-header">
-    	<ul>
-    	    <li class="getthecode-filename">example.py</li>
-    	    <li class="getthecode-filename-link">
-    		<a href="../../_downloads/example.py">
-    		    <span>example.py</span>
-    		    <i class="fa fa-download" aria-hidden="true"></i>
-    		</a></li>
-    	    <li class="show-code-button" title="Show/Hide the code">
-    		<i class="fa fa-eye" aria-hidden="true"></i>
-    		<i class="fa fa-eye-slash" aria-hidden="true" style="display: none;"></i>
-    	    </li></ul>
+            <ul>
+                <li class="getthecode-filename">example.py</li>
+
+                <li class="getthecode-filename-link">
+                    <a href="../example.py" download="example.py" type="text/x-python" target="_blank" rel="noreferrer noopener">
+                        <span> example.py </span>
+                    </a>
+                </li>
+
+                <li class="getthecode-notebook-link">
+                    <a href="../example.ipynb" download="example.ipynb" type="application/x-ipynb+json" target="_blank" rel="noreferrer noopener">
+                        <span> example.ipynb </span>
+                    </a>
+                </li>
+
+                <!-- Added by javascript -->
+                <li class="show-code-button" title="Show/Hide the code">
+                    <i class="fa fa-eye" aria-hidden="true"></i>
+                    <i class="fa fa-eye-slash" aria-hidden="true" style="display: none;"></i>
+                </li>
+            </ul>
         </div>
+
         <div class="highlight-python3 highlight-hidden" style="display: none;">
-    	<div class="highlight">
-    	    <pre>
-	    ...
-    	    </pre>
-    	</div>
+            <div class="highlight">
+                <pre> </pre>
+            </div>
         </div>
     </div>
 
 You can find in the ``static`` directory an example of **CSS stylesheet** and a **Javascript code to show/hide the code**.
+
+You can customise the HTML code using the ``getthecode_header_template`` configuration variable that
+contains a Jinja2 template, by default set to:
+
+.. code:: html
+
+    <div class="getthecode-header">
+      <ul>
+        <li class="getthecode-filename">{{ filename }}</li>
+        <li class="getthecode-filename-link">
+          <a href="{{ url }}" download={{ filename }} type="text/x-python" target="_blank" rel="noreferrer noopener"><span>
+            {{ filename }}
+          </span></a>
+        </li>
+    {% if notebook_url %}
+        <li class="getthecode-notebook-link">
+          <a href="{{ notebook_url }}" download={{ notebook_filename }} type="application/x-ipynb+json" target="_blank" rel="noreferrer noopener"><span>
+            {{ notebook_filename }}
+          </span></a>
+        </li>
+    {% endif %}
+      </ul>
+    </div>
