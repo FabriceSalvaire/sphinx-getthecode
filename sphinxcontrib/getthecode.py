@@ -15,8 +15,13 @@ from docutils.parsers.rst import Directive, directives
 from docutils.writers.html4css1 import HTMLTranslator as BaseTranslator
 
 from sphinx.util.nodes import set_source_info
+import sphinx.util
 
 import jinja2
+
+####################################################################################################
+
+logger = sphinx.util.logging.getLogger('getthecode')
 
 ####################################################################################################
 
@@ -149,7 +154,7 @@ def process_getthedoc(app, doctree):
         env.dependencies.setdefault(document_name, set()).add(relative_source_path)
 
         if not os.access(source_path, os.R_OK):
-            env.warn_node('download file not readable: {}'.format(source_path), node)
+            logger.warning('download file not readable: {}'.format(source_path), node)
             continue
 
         # c3e20896d45729b3dd37b566def9e52a/full-test.py
@@ -159,7 +164,7 @@ def process_getthedoc(app, doctree):
         notebook_path = node.get('notebook_path', None)
         if notebook_path is not None:
             if not os.access(notebook_path, os.R_OK):
-                env.warn_node('download file not readable: {}'.format(notebook_path), node)
+                logger.warning('download file not readable: {}'.format(notebook_path), node)
                 continue
 
             unique_name = env.dlfiles.add_file(document_name, str(notebook_path))
